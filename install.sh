@@ -19,7 +19,7 @@ source venv/bin/activate
 pip install uwsgi
 pip install -r requirements/test.txt
 python manage.py test hasker.tests -p=*.py --settings=config.settings.test
-python manage.py migrate
+python manage.py migrate --settings=config.settings.local
 python manage.py runserver 0.0.0.0:80 --settings=config.settings.local
 echo "END"
 
