@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<table id="result">
+    {% for question in questions %}
+    <tr>
+        <td class="counter">
+            <div>{{ question.rating }}</div>
+            <div>votes</div>
+        </td>
+        <td class="counter">
+            <div>{{ question.answers_num }}</div>
+            <div>answers</div>
+        </td>
+        <td>
+            <a href="{{ question.url }}"><div class="title">{{ question.title }}</div></a>
+            <div>
+                {% for tag in question.tags.all %}
+                <a href="{{ tag.url }}"><span class="tag">{{ tag.name }}</span></a>
+                {% endfor %}
+            </div>
+        </td>
+        <td>
+            <img class="avatar" src="{{ question.author.avatar.url }}">
+        </td>
+        <td class="dt">
+            <div>{{ question.author.username }}</div>
+            <div>{{ question.creation_date|time:'H:i' }} {{ question.creation_date|date:'d/m/Y' }}</div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Nothing found</td></tr>
+    {% endfor %}
+</table>
+<div>
+    {% if prev_url %}<a href="{{ prev_url }}"><span>&lt;- Previous</span></a>{% endif %}
+    {% if next_url %}<a href="{{ next_url }}"><span>Next -&gt;</span></a>{% endif %}
+</div>
+{% endblock %}

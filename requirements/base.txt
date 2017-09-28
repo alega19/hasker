@@ -1,0 +1,4 @@
+--no-binary :all: psycopg2==2.7.3
+django==1.11.4
+djangorestframework==3.6.4
+django-rest-swagger==2.1.2

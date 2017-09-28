@@ -1,0 +1,8 @@
+{% extends "result.html" %}
+{% block title %}Hot questions{% endblock %}
+{% block content %}
+<h1>
+    <a href="{{ new_url }}">New questions</a><span> | </span><span>Hot questions</span>
+</h1>
+{{ block.super }}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% block styles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/main.css' %}">
+    {% endblock %}
+    {% block scripts %}
+    <script src="{% static 'scripts/main.js' %}"></script>
+    {% endblock %}
+</head>
+<body>
+<div id="main">
+    <div id="header" class="row">
+        <div id="logo"><a href="/">Hasker</a></div>
+        <div id="searching">
+            <form method="get" action="{% url 'search' %}" enctype="application/x-www-form-urlencoded">
+                <input name="q" type="text" placeholder="Search..." value="{{ query }}" required>
+            </form>
+        </div>
+        <div id="userblock" class="row">
+            {% if user.is_authenticated %}
+                <div><img class="avatar" src="{{ user.avatar.url }}" alt="Avatar"></div>
+                <div>
+                    <div><a href="{% url 'settings' %}">{{ user.username }}</a></div>
+                    <form method="post" action="{% url 'logout' %}" enctype="application/x-www-form-urlencoded">
+                        {% csrf_token %}
+                        <button type="submit">Logout</button>
+                    </form>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}">Log In</a>
+                <a href="{% url 'signup' %}">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+    <div>
+        <div id="content">{% block content %}{% endblock %}</div>
+        <div id="trending">
+            {% block ask_button %}
+            <div class="button"><a href="{% url 'ask' %}"><button>Ask</button></a></div>
+            {% endblock %}
+            <div class="title">Trending</div>
+            <table>
+                {% for question in trending %}
+                <tr>
+                    <td class="rating">{{ question.rating }}</td>
+                    <td><a href="{{ question.url }}">{{ question.title }}</a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

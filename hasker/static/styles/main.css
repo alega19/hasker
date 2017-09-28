@@ -1,0 +1,209 @@
+body {
+    margin: 0;
+    font-family: Arial;
+    font-size: 16px;
+}
+
+form p label {
+    display: block;
+}
+form p input {
+    display: block;
+    width: 300px;
+}
+form .errorlist {
+    color: #ff4034;
+}
+form .helptext {
+    display: block;
+    width: 300px;
+    padding: 2px;
+    background-color: aquamarine;
+}
+#content form button {
+    width: 120px;
+    height: 30px;
+    text-align: center;
+    font-size: 24px;
+}
+
+textarea {
+    width: 100%;
+    font-family: Arial;
+    font-size: 16px;
+}
+
+.question .title {
+    font-size: 24px;
+}
+
+.counter {
+    vertical-align: bottom;
+    text-align: center;
+    font-size: 18px;
+}
+
+#result .title {
+    padding: 10px;
+    font-size: 18px;
+}
+
+#result .dt {
+    width: 150px;
+}
+
+#main {
+    width: 1000px;
+    margin: auto;
+    padding-top: 20px;
+}
+
+.row > * {
+    display: inline-block;
+}
+
+.avatar {
+    width: 50px;
+    max-height: 50px;
+}
+
+#header {
+    height: 80px;
+    border-bottom: 4px solid gray;
+}
+
+#logo {
+    width: 30%;
+    height: 100%;
+    font-size: 36px;
+    font-weight: bold;
+}
+
+#searching {
+    width: 40%;
+    height: 100%;
+}
+#searching input {
+    width: 80%;
+    height: 24px;
+}
+
+#userblock {
+    width: 25%;
+    height: 100%;
+    float: right;
+}
+
+#content {
+    width: 60%;
+    float: left;
+    padding: 2%;
+}
+
+#trending {
+    width: 32%;
+    float: right;
+    padding: 2%;
+}
+
+.button {
+    text-align: center;
+}
+
+#trending button {
+    width: 120px;
+    height: 30px;
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+#trending .title {
+    text-align: center;
+    font-size: 24px;
+}
+
+#reply button {
+    width: 120px;
+    height: 30px;
+    text-align: center;
+    font-size: 24px;
+}
+
+#trending .rating {
+    background-color: #009fff;
+    padding: 4px;
+    text-align: right;
+}
+
+.question {
+    width: 100%;
+}
+
+.rating-widget {
+    width: 60px;
+    padding-bottom: 10px;
+}
+
+.rating-widget > span {
+    display: block;
+    margin: auto;
+}
+
+.rating-widget .rating {
+    padding: 10px 0;
+    text-align: center;
+    font-size: 24px;
+}
+
+.rating-widget .vote-for, .vote-against {
+    width: 30px;
+    height: 16px;
+}
+
+.rating-widget .vote-for {
+    background: url("/static/icons/up.png") no-repeat;
+    background-size: contain;
+}
+
+.rating-widget .vote-for.on {
+    background: url("/static/icons/up_on.png") no-repeat;
+    background-size: contain;
+}
+
+.rating-widget .vote-against {
+    background: url("/static/icons/down.png") no-repeat;
+    background-size: contain;
+}
+
+.rating-widget .vote-against.on {
+    background: url("/static/icons/down_on.png") no-repeat;
+    background-size: contain;
+}
+
+.tag {
+    background-color: #009fff;
+    margin: 8px 2px;
+    padding: 4px;
+}
+
+.answer .status {
+    width: 24px;
+    height: 24px;
+    background: url("/static/icons/correct.png") no-repeat;
+    background-size: contain;
+}
+
+.answer .status.correct {
+    background: url("/static/icons/correct_on.png") no-repeat;
+    background-size: contain;
+}
+
+.text {
+    vertical-align: top;
+}
+
+.answer {
+    width: 100%;
+    margin-top: 50px;
+}

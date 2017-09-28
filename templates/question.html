@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %} {{ question.title }} {% endblock %}
+{% block content %}
+    <table id="question" class="question" data-id="{{ question.id }}">
+        <tr><td colspan="2" class="title">{{ question.title }}</td></tr>
+        <tr>
+            <td class="rating-widget">
+                <span class="vote-for{% if question.vote == 1 %} on{% endif %}"></span>
+                <span class="rating">{{ question.rating }}</span>
+                <span class="vote-against{% if question.vote == -1 %} on{% endif %}"></span>
+            </td>
+            <td class="text">{{ question.text }}</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+            {% for tag in question.tags.all %}
+                <a href="{{ tag.url }}"><span class="tag">{{ tag.name }}</span></a>
+            {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <img class="avatar" src="{{ question.author.avatar.url }}" alt="Avatar">
+            </td>
+            <td>
+                <div>{{ question.author.username }}</div>
+                <div>{{ question.creation_date|time:'H:i' }} {{ question.creation_date|date:'d/m/Y' }}</div>
+            </td>
+        </tr>
+    </table>
+    <div id="answers">
+    {% for answer in answers %}
+        <table class="answer" data-id="{{ answer.id }}">
+            <tr>
+                <td class="rating-widget">
+                    <span class="vote-for{% if answer.vote == 1 %} on{% endif %}"></span>
+                    <span class="rating">{{ answer.rating }}</span>
+                    <span class="vote-against{% if answer.vote == -1 %} on{% endif %}"></span>
+                    <span class="status{% if answer.is_correct %} correct{% endif %}"></span>
+                </td>
+                <td class="text">{{ answer.text }}</td>
+            </tr>
+            <tr>
+                <td><img class="avatar" src="{{ answer.author.avatar.url }}" alt="Avatar"></td>
+                <td>
+                    <div>{{ answer.author.username }}</div>
+                    <div>{{ answer.creation_date|time:'H:i' }} {{ answer.creation_date|date:'d/m/Y' }}</div>
+                </td>
+            </tr>
+        </table>
+    {% endfor %}
+    </div>
+    <div class="pagination">
+        {% if prev_url %}<a href="{{ prev_url }}"><span>&lt;- Previous</span></a>{% endif %}
+        {% if next_url %}<a href="{{ next_url }}"><span>Next -&gt;</span></a>{% endif %}
+    </div>
+    {% if user.is_authenticated %}
+    <div id="reply">
+        <form method="post" action="{{ question.url }}" enctype="application/x-www-form-urlencoded">
+            {{ form.as_p }}
+            {% csrf_token %}
+            <div class="button"><button type="submit">Answer</button></div>
+        </form>
+    </div>
+    {% endif %}
+{% endblock %}

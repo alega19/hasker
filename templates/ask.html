@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Ask{% endblock %}
+{% block content %}
+    <h1>Ask question</h1>
+    <form method="post" action="{% url 'ask' %}" enctype="application/x-www-form-urlencoded">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit">Ask</button>
+    </form>
+{% endblock %}
+{% block ask_button %}{% endblock %}
