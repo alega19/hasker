@@ -4,22 +4,21 @@ apt-get update
 
 apt-get install -y python-software-properties software-properties-common postgresql-9.6 postgresql-client-9.6 postgresql-contrib-9.6
 /etc/init.d/postgresql start
-su postgres
-createdb hasker
-psql --command "ALTER USER postgres WITH superuser password 'postgres';"
-exit
+apt-get install -y sudo
+sudo -u postgres createdb hasker
+sudo -u postgres psql --command "ALTER USER postgres WITH superuser password 'postgres';"
 
-apt-get install nginx
+apt-get install -y nginx
+#/etc/init.d/nginx start
 
-apt-get install git
-git clone https://github.com/alega19/hasker
-cd hasker/
-apt-get install python (Y/n)
-apt-get install python-pip
+apt-get install -y python
+apt-get install -y python-pip
 pip install virtualenv
 virtualenv venv
 source venv/bin/activate
 pip install uwsgi
 pip install -r requirements/production.txt
+python manage.py test hasker.tests -p=*.py --settings=config.settings.test
+python manage.py runserver 0.0.0.0:80 --settings=config.settings.local
 echo "END"
 
