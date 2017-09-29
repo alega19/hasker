@@ -151,7 +151,7 @@ def question_view(req, slug):
                     req.scheme, req.META['HTTP_HOST'], question.url()),
                 settings.EMAIL_HOST_USER,
                 [question.author.email],
-                html_message='Link: <a href="{0}://{1}{2}">{3}</a>'.format(
+                html_message=u'Link: <a href="{0}://{1}{2}">{3}</a>'.format(
                     req.scheme, req.META['HTTP_HOST'], question.url(), question.title),
                 fail_silently=True
             )
