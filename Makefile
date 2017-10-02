@@ -23,6 +23,9 @@ server {
 endef
 export NGCONF
 
+DJANGO_SETTINGS_MODULE=config.settings.production
+export DJANGO_SETTINGS_MODULE
+
 prod:
 	mkdir -p /usr/local/hasker/{media,static}
 	apt-get update
@@ -37,16 +40,14 @@ prod:
 	apt-get install -y python-pip
 	pip install virtualenv
 	virtualenv venv
-	source venv/bin/activate
-	pip install uwsgi
-	pip install -r requirements/production.txt
-	export DJANGO_SETTINGS_MODULE=config.settings.production
-	python manage.py migrate
-	python manage.py collectstatic
+	venv/bin/pip install uwsgi
+	venv/bin/pip install -r requirements/production.txt
+	venv/bin/python manage.py migrate
+	venv/bin/python manage.py collectstatic
 
 	apt-get install -y nginx
 	rm /etc/nginx/sites-enabled/default
 	echo "$$NGCONF" > /etc/nginx/sites-enabled/hasker.conf
 	/etc/init.d/nginx start
 
-	uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py
+	venv/bin/uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py
