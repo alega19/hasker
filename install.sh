@@ -39,7 +39,7 @@ pip install -r requirements/production.txt
 export DJANGO_SETTINGS_MODULE=config.settings.production
 python manage.py migrate
 python manage.py collectstatic
-uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py
+uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py &
 
 apt-get install -y nginx
 rm /etc/nginx/sites-enabled/default
@@ -47,4 +47,3 @@ echo $NGCONF > /etc/nginx/sites-enabled/hasker.conf
 /etc/init.d/nginx start
 
 echo "END"
-
