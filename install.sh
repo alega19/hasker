@@ -1,24 +1,24 @@
 #!/bin/bash
 echo "START"
-NGCONF="server {
-    listen 80;
-    server_name 0.0.0.0;
-    charset utf-8;
-    client_max_body_size 2M;
-
-    location /media {
-        alias /usr/local/hasker/media;
-    }
-
-    location /static {
-        alias /usr/local/hasker/static;
-    }
-
-    location / {
-        include uwsgi_params;
-        uwsgi_pass 127.0.0.1:8000;
-    }
-}"
+NGCONF="server {\n
+    listen 80;\n
+    server_name 0.0.0.0;\n
+    charset utf-8;\n
+    client_max_body_size 2M;\n
+\n
+    location /media {\n
+        alias /usr/local/hasker/media;\n
+    }\n
+\n
+    location /static {\n
+        alias /usr/local/hasker/static;\n
+    }\n
+\n
+    location / {\n
+        include uwsgi_params;\n
+        uwsgi_pass 127.0.0.1:8000;\n
+    }\n
+}\n"
 mkdir -p /usr/local/hasker/{media,static};
 
 apt-get update
@@ -39,11 +39,11 @@ pip install -r requirements/production.txt
 export DJANGO_SETTINGS_MODULE=config.settings.production
 python manage.py migrate
 python manage.py collectstatic
-uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py &
 
 apt-get install -y nginx
 rm /etc/nginx/sites-enabled/default
 echo $NGCONF > /etc/nginx/sites-enabled/hasker.conf
 /etc/init.d/nginx start
 
+uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py 
 echo "END"
