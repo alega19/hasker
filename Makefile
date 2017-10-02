@@ -28,6 +28,7 @@ export DJANGO_SETTINGS_MODULE
 
 prod:
 	mkdir -p /usr/local/hasker/{media,static}
+	mkdir -p /var/log/uwsgi
 	apt-get update
 
 	apt-get install -y postgresql-9.6 postgresql-contrib-9.6
@@ -50,4 +51,4 @@ prod:
 	echo "$$NGCONF" > /etc/nginx/sites-enabled/hasker.conf
 	/etc/init.d/nginx start
 
-	venv/bin/uwsgi --socket 127.0.0.1:8000 --wsgi-file config/wsgi.py
+	venv/bin/uwsgi --socket=127.0.0.1:8000 --wsgi-file=config/wsgi.py --daemonize=/var/log/uwsgi/uwsgi.log
