@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
 import itertools
 
+from django.conf import settings
 from django.db import models, transaction
-from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.utils.text import slugify
 from django.urls import reverse
@@ -17,7 +16,7 @@ class QuestionVote(models.Model):
         (NEGATIVE, 'Negative')
     )
     question = models.ForeignKey('Question')
-    user = models.ForeignKey('User')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     value = models.SmallIntegerField(choices=_VALUE_CHOICES)
 
 
@@ -29,7 +28,7 @@ class AnswerVote(models.Model):
         (NEGATIVE, 'Negative')
     )
     answer = models.ForeignKey('Answer')
-    user = models.ForeignKey('User')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     value = models.SmallIntegerField(choices=_VALUE_CHOICES)
 
 
@@ -72,10 +71,31 @@ class Question(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=_MAX_SLUG_LENGTH, unique=True)
     text = models.TextField()
-    author = models.ForeignKey('User')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
     creation_date = models.DateTimeField(default=timezone.now)
     tags = models.ManyToManyField(Tag)
     rating = models.IntegerField(default=0)
+
+    @transaction.atomic
+    def vote(self, user, value):
+        if self.author_id == user.id:
+            raise ValueError()
+        try:
+            vote = QuestionVote.objects.get(question=self, user=user)
+            if vote.value == value:
+                self.rating -= vote.value
+                self.save()
+                vote.delete()
+            else:
+                self.rating += value - vote.value
+                self.save()
+                vote.value = value
+                vote.save()
+        except QuestionVote.DoesNotExist:
+            QuestionVote.objects.create(question=self, user=user, value=value)
+            self.rating += value
+            self.save()
+        return self.rating
 
     def get_answers(self, offset, limit, user=None):
         answers = self.answer_set.prefetch_related('author')[offset:offset+limit]
@@ -108,9 +128,9 @@ class Question(models.Model):
 
 
 class Answer(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question)
     text = models.TextField()
-    author = models.ForeignKey('User')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
     is_correct = models.BooleanField(default=False)
     creation_date = models.DateTimeField(default=timezone.now)
     rating = models.IntegerField(default=0)
@@ -118,67 +138,37 @@ class Answer(models.Model):
     class Meta:
         ordering = ('-rating', '-creation_date')
 
-
-def _get_file_path(user, filename):
-    return os.path.join('user_{0}'.format(user.username), filename)
-
-
-class User(AbstractUser):
-    password = models.CharField(max_length=128)
-    email = models.EmailField(unique=True)
-    avatar = models.ImageField(upload_to=_get_file_path)
-
     @transaction.atomic
-    def mark_correct_answer(self, answer):
-        if answer.question.author_id != self.id:
+    def mark_correct(self, user):
+        if self.question.author_id != user.id:
             raise ValueError()
         try:
-            correct_answer = Answer.objects.get(question=answer.question_id, is_correct=True)
+            correct_answer = Answer.objects.get(question=self.question_id, is_correct=True)
             correct_answer.is_correct = False
             correct_answer.save()
-        except Answer.DoesNotExist:
+        except self.DoesNotExist:
             pass
-        answer.is_correct = True
-        answer.save()
+        self.is_correct = True
+        self.save()
 
     @transaction.atomic
-    def vote_for_question(self, question, value):
-        if question.author_id == self.id:
+    def vote(self, user, value):
+        if self.author_id == user.id:
             raise ValueError()
         try:
-            vote = QuestionVote.objects.get(question=question, user=self)
+            vote = AnswerVote.objects.get(answer=self, user=user)
             if vote.value == value:
-                question.rating -= vote.value
-                question.save()
+                self.rating -= vote.value
+                self.save()
                 vote.delete()
             else:
-                question.rating += value - vote.value
-                question.save()
-                vote.value = value
-                vote.save()
-        except QuestionVote.DoesNotExist:
-            QuestionVote.objects.create(question=question, user=self, value=value)
-            question.rating += value
-            question.save()
-        return question.rating
-
-    @transaction.atomic
-    def vote_for_answer(self, answer, value):
-        if answer.author_id == self.id:
-            raise ValueError()
-        try:
-            vote = AnswerVote.objects.get(answer=answer, user=self)
-            if vote.value == value:
-                answer.rating -= vote.value
-                answer.save()
-                vote.delete()
-            else:
-                answer.rating += value - vote.value
-                answer.save()
+                self.rating += value - vote.value
+                self.save()
                 vote.value = value
                 vote.save()
         except AnswerVote.DoesNotExist:
-            AnswerVote.objects.create(answer=answer, user=self, value=value)
-            answer.rating += value
-            answer.save()
-        return answer.rating
+            AnswerVote.objects.create(answer=self, user=user, value=value)
+            self.rating += value
+            self.save()
+        return self.rating
+

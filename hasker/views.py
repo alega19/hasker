@@ -145,14 +145,14 @@ def question_view(req, slug):
             text = form.cleaned_data['text']
             question = get_object_or_404(Question, slug=slug)
             Answer.objects.create(question=question, text=text, author=user)
+            url = u'{0}://{1}{2}'.format(
+                req.scheme, req.META['HTTP_HOST'], question.url())
             send_mail(
                 u'Hasker: New answer!',
-                u'Link: {0}://{1}{2}'.format(
-                    req.scheme, req.META['HTTP_HOST'], question.url()),
+                u'Link: {0}'.format(url),
                 settings.EMAIL_HOST_USER,
                 [question.author.email],
-                html_message=u'Link: <a href="{0}://{1}{2}">{3}</a>'.format(
-                    req.scheme, req.META['HTTP_HOST'], question.url(), question.title),
+                html_message=u'Link: <a href="{0}">{1}</a>'.format(url, question.title),
                 fail_silently=True
             )
             return HttpResponseRedirect(question.url())
@@ -199,7 +199,7 @@ def tag_view(req, name):
 @require_GET
 def search_view(req):
     query = req.GET.get('q', '').strip()
-    if not query:
+    if not query or len(query) > 50:
         return HttpResponseBadRequest()
     if query[:4].lower() == 'tag:':
         tag_name = query[4:].strip().lower()
@@ -229,7 +229,7 @@ def mark_correct_answer(req, answer_id):
     if not user.is_authenticated:
         return HttpResponseForbidden()
     answer = get_object_or_404(Answer, id=answer_id)
-    user.mark_correct_answer(answer)
+    answer.mark_correct(user)
     return JsonResponse({'status': 'ok'})
 
 
@@ -242,9 +242,9 @@ def vote_for_question_view(req, question_id, value):
     if question.author == user:
         return JsonResponse({'status': 'error', 'message': 'You cannot vote for your question'})
     if value == 'for':
-        rating = user.vote_for_question(question, QuestionVote.POSITIVE)
+        rating = question.vote(user, QuestionVote.POSITIVE)
     elif value == 'against':
-        rating = user.vote_for_question(question, QuestionVote.NEGATIVE)
+        rating = question.vote(user, QuestionVote.NEGATIVE)
     else:
         return HttpResponseBadRequest()
     return JsonResponse({'status': 'ok', 'rating': rating})
@@ -259,9 +259,9 @@ def vote_for_answer_view(req, answer_id, value):
     if answer.author == user:
         return JsonResponse({'status': 'error', 'message': 'You cannot vote for your answer'})
     if value == 'for':
-        rating = user.vote_for_answer(answer, AnswerVote.POSITIVE)
+        rating = answer.vote(user, AnswerVote.POSITIVE)
     elif value == 'against':
-        rating = user.vote_for_answer(answer, AnswerVote.NEGATIVE)
+        rating = answer.vote(user, AnswerVote.NEGATIVE)
     else:
         return HttpResponseBadRequest()
     return JsonResponse({'status': 'ok', 'rating': rating})

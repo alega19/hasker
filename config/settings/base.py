@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core.apps.CoreConfig',
     'hasker.apps.HaskerConfig',
     'rest_framework',
     'rest_framework_swagger',
@@ -46,7 +47,7 @@ INSTALLED_APPS = [
 ]
 
 # Custom User's model
-AUTH_USER_MODEL = 'hasker.User'
+AUTH_USER_MODEL = 'core.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

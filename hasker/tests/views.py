@@ -1,11 +1,15 @@
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 from django.shortcuts import Http404
 
-from hasker.models import User, Question, Tag
+from hasker.models import Question, Tag
 from hasker.views import (
     new_view, hot_view, question_view, tag_view, search_view)
+
+
+User = get_user_model()
 
 
 class TestNewView(TestCase):

@@ -1,9 +1,12 @@
 import re
 
 from django import forms
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 
 from . import models
+
+
+User = get_user_model()
 
 
 class SignupForm(forms.ModelForm):
@@ -36,7 +39,7 @@ class SignupForm(forms.ModelForm):
         super(SignupForm, self).save(commit)
 
     class Meta:
-        model = models.User
+        model = User
         fields = ('username', 'email', 'password', 'password2', 'avatar')
         widgets = {'password': forms.PasswordInput()}
         help_texts = {'username': u'Letters, digits and @/./+/-/_ only'}
@@ -69,7 +72,7 @@ class SettingsForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if email != self._user.email and models.User.objects.filter(email=email).exists():
+        if email != self._user.email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(u'A user with that email already exists')
         return email
 

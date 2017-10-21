@@ -3,10 +3,13 @@ from io import BytesIO
 from PIL import Image
 
 from django.test import SimpleTestCase, TestCase
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from hasker.forms import SignupForm, SettingsForm, AskForm
-from hasker.models import User
+
+
+User = get_user_model()
 
 
 class TestSignupForm(TestCase):

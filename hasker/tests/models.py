@@ -1,6 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from hasker.models import User, Tag, QuestionVote, AnswerVote
+from hasker.models import Tag, QuestionVote, AnswerVote
+
+
+User = get_user_model()
 
 
 class TestQuestion(TestCase):
@@ -29,13 +33,13 @@ class TestUser(TestCase):
         self.assertFalse(a1.is_correct)
         self.assertFalse(a2.is_correct)
 
-        user.mark_correct_answer(a1)
+        a1.mark_correct(user)
         a1.refresh_from_db()
         a2.refresh_from_db()
         self.assertTrue(a1.is_correct)
         self.assertFalse(a2.is_correct)
 
-        user.mark_correct_answer(a2)
+        a2.mark_correct(user)
         a1.refresh_from_db()
         a2.refresh_from_db()
         self.assertFalse(a1.is_correct)
@@ -45,22 +49,22 @@ class TestUser(TestCase):
         alice = User.objects.create(username='alice', email='alice@mail.ru', password='123')
         bob = User.objects.create(username='bob', email='bob@mail.ru', password='123')
         question = bob.question_set.create(title='?', text='T', tag_names=[])
-        self.assertRaises(ValueError, lambda: bob.vote_for_question(question, QuestionVote.POSITIVE))
+        self.assertRaises(ValueError, lambda: question.vote(bob, QuestionVote.POSITIVE))
         question.refresh_from_db()
         self.assertEqual(question.rating, 0)
         self.assertEqual(QuestionVote.objects.filter(question=question).count(), 0)
 
-        alice.vote_for_question(question, QuestionVote.POSITIVE)
+        question.vote(alice, QuestionVote.POSITIVE)
         question.refresh_from_db()
         self.assertEqual(question.rating, 1)
         self.assertEqual(QuestionVote.objects.filter(question=question).count(), 1)
 
-        alice.vote_for_question(question, QuestionVote.NEGATIVE)
+        question.vote(alice, QuestionVote.NEGATIVE)
         question.refresh_from_db()
         self.assertEqual(question.rating, -1)
         self.assertEqual(QuestionVote.objects.filter(question=question).count(), 1)
 
-        alice.vote_for_question(question, QuestionVote.NEGATIVE)
+        question.vote(alice, QuestionVote.NEGATIVE)
         question.refresh_from_db()
         self.assertEqual(question.rating, 0)
         self.assertEqual(QuestionVote.objects.filter(question=question).count(), 0)
@@ -71,22 +75,22 @@ class TestUser(TestCase):
         question = bob.question_set.create(title='?', text='T', tag_names=[])
         answer = question.answer_set.create(author=bob, text='T')
 
-        self.assertRaises(ValueError, lambda: bob.vote_for_answer(answer, AnswerVote.POSITIVE))
+        self.assertRaises(ValueError, lambda: answer.vote(bob, AnswerVote.POSITIVE))
         answer.refresh_from_db()
         self.assertEqual(answer.rating, 0)
         self.assertEqual(AnswerVote.objects.filter(answer=answer).count(), 0)
 
-        alice.vote_for_answer(answer, AnswerVote.POSITIVE)
+        answer.vote(alice, AnswerVote.POSITIVE)
         answer.refresh_from_db()
         self.assertEqual(answer.rating, 1)
         self.assertEqual(AnswerVote.objects.filter(answer=answer).count(), 1)
 
-        alice.vote_for_answer(answer, AnswerVote.NEGATIVE)
+        answer.vote(alice, AnswerVote.NEGATIVE)
         answer.refresh_from_db()
         self.assertEqual(answer.rating, -1)
         self.assertEqual(AnswerVote.objects.filter(answer=answer).count(), 1)
 
-        alice.vote_for_answer(answer, AnswerVote.NEGATIVE)
+        answer.vote(alice, AnswerVote.NEGATIVE)
         answer.refresh_from_db()
         self.assertEqual(answer.rating, 0)
         self.assertEqual(AnswerVote.objects.filter(answer=answer).count(), 0)
