@@ -32,7 +32,7 @@
     {% endfor %}
 </table>
 <div>
-    {% if prev_url %}<a href="{{ prev_url }}"><span>&lt;- Previous</span></a>{% endif %}
-    {% if next_url %}<a href="{{ next_url }}"><span>Next -&gt;</span></a>{% endif %}
+	{% if questions.has_previous %}<a href="{{ pages_url }}{{ questions.previous_page_number }}"><span>&lt;- Previous</span></a>{% endif %}
+	{% if questions.has_next %}<a href="{{ pages_url }}{{ questions.next_page_number }}"><span>Next -&gt;</span></a>{% endif %}
 </div>
 {% endblock %}

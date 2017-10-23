@@ -52,8 +52,8 @@
     {% endfor %}
     </div>
     <div class="pagination">
-        {% if prev_url %}<a href="{{ prev_url }}"><span>&lt;- Previous</span></a>{% endif %}
-        {% if next_url %}<a href="{{ next_url }}"><span>Next -&gt;</span></a>{% endif %}
+	    {% if answers.has_previous %}<a href="{{ pages_url }}{{ answers.previous_page_number }}"><span>&lt;- Previous</span></a>{% endif %}
+	    {% if answers.has_next %}<a href="{{ pages_url }}{{ answers.next_page_number }}"><span>Next -&gt;</span></a>{% endif %}
     </div>
     {% if user.is_authenticated %}
     <div id="reply">

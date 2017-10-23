@@ -9,48 +9,41 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Count, Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .forms import AnswerForm, AskForm, LoginForm, SettingsForm, SignupForm
 from .models import Question, Tag, Answer, QuestionVote, AnswerVote
 
 
+QUESTIONS_LIMIT = 100
+ANSWERS_LIMIT = 150
+
+
 @require_GET
 def new_view(req):
-    try:
-        page = int(req.GET.get('page', 1))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if page < 1 or page > 5:
-        raise Http404()
-    limit = 20
-    offset = limit * (page - 1)
     questions = Question.objects.prefetch_related('author', 'tags').annotate(answers_num=Count('answer'))\
-        .order_by('-creation_date')[offset:offset + limit]
-    context = {'questions': questions, 'hot_url': reverse('hot')}
-    if page > 1:
-        context['prev_url'] = reverse('new')+'?page={0:d}'.format(page - 1)
-    if len(questions) == limit and page < 5:
-        context['next_url'] = reverse('new')+'?page={0:d}'.format(page + 1)
+        .order_by('-creation_date')[:QUESTIONS_LIMIT]
+    paginator = Paginator(questions, 20)
+    page_num = req.GET.get('page', 1)
+    try:
+        page = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        raise Http404()
+    context = {'questions': page, 'hot_url': reverse('hot'), 'pages_url': reverse('new')+'?page='}
     return render(req, 'new.html', context)
 
 
 @require_GET
 def hot_view(req):
-    try:
-        page = int(req.GET.get('page', 1))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if page < 1 or page > 5:
-        raise Http404()
-    limit = 20
-    offset = limit * (page - 1)
     questions = Question.objects.prefetch_related('author', 'tags').annotate(answers_num=Count('answer'))\
-        .order_by('-rating', '-creation_date')[offset:offset + limit]
-    context = {'questions': questions, 'new_url': reverse('new')}
-    if page > 1:
-        context['prev_url'] = reverse('hot')+'?page={0:d}'.format(page - 1)
-    if len(questions) == limit and page < 5:
-        context['next_url'] = reverse('hot')+'?page={0:d}'.format(page + 1)
+        .order_by('-rating', '-creation_date')[:QUESTIONS_LIMIT]
+    paginator = Paginator(questions, 20)
+    page_num = req.GET.get('page', 1)
+    try:
+        page = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        raise Http404()
+    context = {'questions': page, 'new_url': reverse('new'), 'pages_url': reverse('hot')+'?page='}
     return render(req, 'hot.html', context)
 
 
@@ -130,14 +123,6 @@ def ask_view(req):
 
 @require_http_methods(['GET', 'POST'])
 def question_view(req, slug):
-    try:
-        page = int(req.GET.get('page', 1))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if page < 1 or page > 5:
-        raise Http404()
-    limit = 30
-    offset = limit * (page - 1)
     user = req.user
     if req.method == 'POST' and user.is_authenticated:
         form = AnswerForm(req.POST)
@@ -161,38 +146,34 @@ def question_view(req, slug):
     try:
         if user.is_authenticated:
             question = Question.objects.get(user, slug=slug)
-            answers = question.get_answers(offset, limit, user)
+            answers = question.get_answers(0, ANSWERS_LIMIT, user)
         else:
             question = Question.objects.get(slug=slug)
-            answers = question.get_answers(offset, limit)
+            answers = question.get_answers(0, ANSWERS_LIMIT)
     except Question.DoesNotExist:
         raise Http404()
-    context = {'question': question, 'answers': answers, 'form': form}
-    if page > 1:
-        context['prev_url'] = reverse('question', kwargs={'slug': slug})+'?page={0:d}'.format(page - 1)
-    if len(answers) == limit and page < 5:
-        context['next_url'] = reverse('question', kwargs={'slug': slug})+'?page={0:d}'.format(page + 1)
+    paginator = Paginator(answers, 30)
+    page_num = req.GET.get('page', 1)
+    try:
+        page = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        raise Http404()
+    context = {'question': question, 'answers': page, 'form': form, 'pages_url': reverse('question', kwargs={'slug': slug})+'?page='}
     return render(req, 'question.html', context)
 
 
 @require_GET
 def tag_view(req, name):
-    try:
-        page = int(req.GET.get('page', 1))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if page < 1 or page > 5:
-        raise Http404()
-    limit = 20
-    offset = limit * (page - 1)
     tag = get_object_or_404(Tag, name=name)
     questions = tag.question_set.all().prefetch_related('author', 'tags').annotate(answers_num=Count('answer'))\
-        .order_by('-rating', '-creation_date')[offset:offset + limit]
-    context = {'questions': questions}
-    if page > 1:
-        context['prev_url'] = reverse('tag', kwargs={'name': name})+'?page={0:d}'.format(page - 1)
-    if len(questions) == limit and page < 5:
-        context['next_url'] = reverse('tag', kwargs={'name': name})+'?page={0:d}'.format(page + 1)
+        .order_by('-rating', '-creation_date')[:QUESTIONS_LIMIT]
+    paginator = Paginator(questions, 20)
+    page_num = req.GET.get('page', 1)
+    try:
+        page = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        raise Http404()
+    context = {'questions': page, 'pages_url': reverse('tag', kwargs={'name': name})+'?page='}
     return render(req, 'tag.html', context)
 
 
@@ -204,22 +185,16 @@ def search_view(req):
     if query[:4].lower() == 'tag:':
         tag_name = query[4:].strip().lower()
         return HttpResponseRedirect(reverse('tag', kwargs={'name': tag_name}))
-    try:
-        page = int(req.GET.get('page', 1))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if page < 1 or page > 5:
-        raise Http404()
-    limit = 20
-    offset = limit * (page - 1)
     questions = Question.objects.prefetch_related('author', 'tags').annotate(answers_num=Count('answer'))\
         .filter(Q(title__icontains=query) | Q(text__icontains=query))\
-        .order_by('-rating', '-creation_date')[offset:offset + limit]
-    context = {'query': query, 'questions': questions}
-    if page > 1:
-        context['prev_url'] = reverse('search')+'?q={0}&page={1:d}'.format(query, page - 1)
-    if len(questions) == limit and page < 5:
-        context['next_url'] = reverse('search')+'?q={0}&page={1:d}'.format(query, page + 1)
+        .order_by('-rating', '-creation_date')[:QUESTIONS_LIMIT]
+    paginator = Paginator(questions, 20)
+    page_num = req.GET.get('page', 1)
+    try:
+        page = paginator.page(page_num)
+    except (PageNotAnInteger, EmptyPage):
+        raise Http404()
+    context = {'query': query, 'questions': page, 'pages_url': reverse('search')+'?q={0}&page='.format(query)}
     return render(req, 'search.html', context)
 
 
