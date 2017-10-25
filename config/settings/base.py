@@ -113,7 +113,7 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 
-STATICFILES_DIRS = [root('hasker', 'static')]
+STATICFILES_DIRS = [root('static')]
 STATIC_URL = '/static/'
 MEDIA_ROOT = root('media')
 MEDIA_URL = '/media/'
